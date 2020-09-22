@@ -17,6 +17,8 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import NoSuchElementException
 
 
 def main():
@@ -41,15 +43,18 @@ def register_hours(intervals_by_date):
     driver = Chrome(options=options)
     rows = driver.find_elements_by_class_name('timesheet-table-row')
 
+    action = ActionChains(driver)
+
     for row in rows:
         date_div = row.find_elements_by_class_name('timesheet-table-day-item')[-1]
         dt = datetime.strptime(date_div.text, '%b %d').replace(year=date.today().year).date()
-        intervals = intervals_by_date.get(dt)
-        if intervals is None:
-            continue
+        intervals = intervals_by_date.get(dt, [])
 
         for (start, end) in intervals:
-            add_button = WebDriverWait(driver, 2).until(EC.presence_of_element_located(('css selector', 'div[role=button]')))
+
+            action.move_to_element(row).perform()
+            time.sleep(0.1)
+            add_button = row.find_element_by_css_selector('div[role=button]')
             add_button.click()
 
             el = driver.switch_to.active_element
@@ -69,8 +74,6 @@ def register_hours(intervals_by_date):
             el.send_keys(end.strftime('%p'))  # am/pm
 
             el.send_keys(Keys.ENTER)
-
-            time.sleep(0.25)
 
 
 if __name__ == '__main__':
