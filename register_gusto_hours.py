@@ -48,12 +48,15 @@ def register_hours(intervals_by_date):
     for row in rows:
         date_div = row.find_elements_by_class_name('timesheet-table-day-item')[-1]
         dt = datetime.strptime(date_div.text, '%b %d').replace(year=date.today().year).date()
+        print(dt)
         intervals = intervals_by_date.get(dt, [])
 
         for (start, end) in intervals:
+            print(start.strftime('%I:%M %p'), '-', end.strftime('%I:%M %p'))
 
+            driver.execute_script('arguments[0].scrollIntoView();', row)
             action.move_to_element(row).perform()
-            time.sleep(0.1)
+            time.sleep(0.2)
             add_button = row.find_element_by_css_selector('div[role=button]')
             add_button.click()
 
@@ -74,6 +77,7 @@ def register_hours(intervals_by_date):
             el.send_keys(end.strftime('%p'))  # am/pm
 
             el.send_keys(Keys.ENTER)
+            time.sleep(1.5)
 
 
 if __name__ == '__main__':
